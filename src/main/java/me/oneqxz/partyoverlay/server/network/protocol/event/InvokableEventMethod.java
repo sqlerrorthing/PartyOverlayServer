@@ -23,8 +23,11 @@
 package me.oneqxz.partyoverlay.server.network.protocol.event;
 
 import io.netty.channel.ChannelHandlerContext;
+import lombok.Getter;
+import me.oneqxz.partyoverlay.server.annotations.PacketNeedAuth;
 import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
+import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,7 +36,7 @@ import java.lang.reflect.Parameter;
 public class InvokableEventMethod {
 
     private final Object holder;
-    private final Method method;
+    @Getter private final Method method;
     private final Class<? extends Packet> packetClass;
 
     public InvokableEventMethod(Object holder, Method method, Class<? extends Packet> packetClass) {
@@ -44,7 +47,7 @@ public class InvokableEventMethod {
         this.method.setAccessible(true);
     }
 
-    public void invoke(Packet packet, ChannelHandlerContext ctx, Responder responder) throws InvocationTargetException, IllegalAccessException {
+    public void invoke(Packet packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user) throws InvocationTargetException, IllegalAccessException {
         if (!packetClass.equals(packet.getClass()))
             return;
 
@@ -62,6 +65,10 @@ public class InvokableEventMethod {
             if (Responder.class.isAssignableFrom(parameter.getType())) {
                 params[index++] = responder;
             }
+
+            if(method.isAnnotationPresent(PacketNeedAuth.class))
+                if(ConnectedUser.class.isAssignableFrom(parameter.getType()))
+                    params[index++] = user;
         }
         method.invoke(holder, params);
     }

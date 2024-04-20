@@ -24,6 +24,11 @@ package me.oneqxz.partyoverlay.server.network.protocol.registry;
 
 import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.exception.PacketRegistrationException;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CLogin;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CMinecraftUsernameChanged;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SConnected;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SDisconnect;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SRequireLogin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -74,7 +79,11 @@ public class SimplePacketRegistry implements IPacketRegistry {
 
 
     public void registerPackets() throws PacketRegistrationException {
-
+        this.registerPacket(0, SRequireLogin.class);
+        this.registerPacket(1, CLogin.class);
+        this.registerPacket(2, SDisconnect.class);
+        this.registerPacket(3, SConnected.class);
+        this.registerPacket(4, CMinecraftUsernameChanged.class);
     }
 
 }

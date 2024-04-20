@@ -23,8 +23,11 @@
 package me.oneqxz.partyoverlay.server.network.protocol.event;
 
 import io.netty.channel.ChannelHandlerContext;
+import me.oneqxz.partyoverlay.server.annotations.PacketNeedAuth;
+import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
+import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -43,23 +46,27 @@ public class RegisteredPacketSubscriber {
             if (!method.isAnnotationPresent(PacketSubscriber.class)) {
                 continue;
             }
+
             Class<? extends Packet> packetClass = null;
             for (Parameter parameter : method.getParameters()) {
                 if (Packet.class.isAssignableFrom(parameter.getType())) {
                     packetClass = (Class<? extends Packet>) parameter.getType();
                     continue;
                 }
-                if (ChannelHandlerContext.class.isAssignableFrom(parameter.getType())) {
-                    continue;
-                }
-                if (Responder.class.isAssignableFrom(parameter.getType())) {
-                    continue;
-                }
+
+                if (ChannelHandlerContext.class.isAssignableFrom(parameter.getType())) continue;
+                if (Responder.class.isAssignableFrom(parameter.getType())) continue;
+
+                if(method.isAnnotationPresent(PacketNeedAuth.class))
+                    if(ConnectedUser.class.isAssignableFrom(parameter.getType())) continue;
+
                 throw new IllegalArgumentException("Invalid parameter for @PacketSubscriber: " + parameter.getType().getSimpleName());
             }
+
             if (packetClass == null) {
                 throw new IllegalArgumentException("Missing packet parameter for @PacketSubscriber");
             }
+
             handler.computeIfAbsent(packetClass, aClass -> new HashSet<>()).add(new InvokableEventMethod(
                     subscriberClass, method, packetClass
             ));
@@ -71,8 +78,22 @@ public class RegisteredPacketSubscriber {
         if (methods == null) {
             return;
         }
+
         for (InvokableEventMethod method : methods) {
-            method.invoke(rawPacket, ctx, responder);
+            if(method.getMethod().isAnnotationPresent(PacketNeedAuth.class))
+            {
+                ConnectedUser user = ConnectionHandler.getUserByCTX(ctx);
+                if(user == null)
+                {
+                    ctx.close();
+                    return;
+                }
+
+                method.invoke(rawPacket, ctx, responder, user);
+                return;
+            }
+
+            method.invoke(rawPacket, ctx, responder, null);
         }
     }
 

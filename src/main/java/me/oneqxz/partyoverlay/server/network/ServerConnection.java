@@ -12,12 +12,13 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.util.concurrent.DefaultEventExecutor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import me.oneqxz.partyoverlay.server.listeners.LoginListener;
+import me.oneqxz.partyoverlay.server.listeners.UsernameChangeListener;
 import me.oneqxz.partyoverlay.server.network.protocol.event.EventRegistry;
 import me.oneqxz.partyoverlay.server.network.protocol.exception.PacketRegistrationException;
 import me.oneqxz.partyoverlay.server.network.protocol.handler.PacketChannelInboundHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.handler.PacketDecoder;
 import me.oneqxz.partyoverlay.server.network.protocol.handler.PacketEncoder;
-import me.oneqxz.partyoverlay.server.network.protocol.listeners.GlobalPacketListener;
 import me.oneqxz.partyoverlay.server.network.protocol.registry.SimplePacketRegistry;
 
 
@@ -36,7 +37,8 @@ public class ServerConnection {
         log.info("Starting server....");
         new Thread(() -> {
             eventRegistry = new EventRegistry();
-            eventRegistry.registerEvents(new GlobalPacketListener());
+            eventRegistry.registerEvents(new LoginListener());
+            eventRegistry.registerEvents(new UsernameChangeListener() );
 
             EventLoopGroup bossGroup = new NioEventLoopGroup();
             ChannelGroup channelGroup = new DefaultChannelGroup(new DefaultEventExecutor());

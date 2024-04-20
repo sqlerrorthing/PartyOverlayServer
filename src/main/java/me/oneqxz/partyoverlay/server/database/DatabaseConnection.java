@@ -19,7 +19,7 @@ import java.sql.SQLException;
 @Log4j2
 public class DatabaseConnection {
 
-    private static final String DATABASE_URL = "jdbc:h2:mem:test";
+    private static final String DATABASE_URL = "jdbc:mysql://fin-1.honte-hosting.com:25578/piski?user=party&password=QxooL7OVn6W51r0r";
     private static DatabaseConnection INSTANCE;
 
     private ConnectionSource connectionSource;
