@@ -48,7 +48,7 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
 
     public static ConnectedUser getUserByID(int connectedID)
     {
-        return connectedUsers.stream().filter(user -> user.getId() == connectedID).findFirst().orElse(null);
+        return connectedUsers.stream().filter(user -> user.getUser().getId() == connectedID).findFirst().orElse(null);
     }
 
     public static boolean isConnected(ChannelHandlerContext ctx) {
