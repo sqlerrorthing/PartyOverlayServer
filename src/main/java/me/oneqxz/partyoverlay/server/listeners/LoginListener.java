@@ -73,12 +73,11 @@ public class LoginListener {
         ConnectedUser connectedUser = ConnectedUser.builder()
                 .user(user)
                 .uuid(UUID.randomUUID())
-                .currentServer(null)
+                .serverData(loginPacket.getServerData())
                 .minecraftUsername(loginPacket.getMinecraftUsername())
-                .isPlaying(false)
                 .ctx(ctx)
                 .build();
-
+        log.info(connectedUser.toString());
         log.debug("New login: {}, {}", loginPacket.getMinecraftUsername(), loginPacket.getCredits().getUsername());
         ConnectionHandler.connectUser(connectedUser);
         responder.respond(new SConnected(

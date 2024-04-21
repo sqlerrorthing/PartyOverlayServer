@@ -26,6 +26,8 @@ import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.exception.PacketRegistrationException;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CLogin;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CMinecraftUsernameChanged;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CStartPlaying;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CStopPlaying;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SConnected;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SDisconnect;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SRequireLogin;
@@ -84,6 +86,9 @@ public class SimplePacketRegistry implements IPacketRegistry {
         this.registerPacket(2, SDisconnect.class);
         this.registerPacket(3, SConnected.class);
         this.registerPacket(4, CMinecraftUsernameChanged.class);
+
+        this.registerPacket(5, CStartPlaying.class);
+        this.registerPacket(6, CStopPlaying.class);
     }
 
 }

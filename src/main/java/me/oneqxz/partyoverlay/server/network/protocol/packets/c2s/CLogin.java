@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.buffer.PacketBuffer;
 import me.oneqxz.partyoverlay.server.sctructures.AuthCredits;
+import me.oneqxz.partyoverlay.server.sctructures.ServerData;
 
 /**
  * PartyOverlayServer
@@ -20,6 +21,7 @@ public class CLogin extends Packet {
 
     private String minecraftUsername;
     private AuthCredits credits;
+    private ServerData serverData;
 
     @Override
     public void read(PacketBuffer buffer) {
@@ -28,6 +30,11 @@ public class CLogin extends Packet {
                 buffer.readUTF8(),
                 buffer.readUTF8()
         );
+
+        String serverIP = buffer.readUTF8();
+        this.serverData = ServerData.builder()
+                .serverIP(serverIP.isEmpty() || serverIP.equals("[null]") ? null : serverIP)
+                .build();
     }
 
     @Override
@@ -36,5 +43,6 @@ public class CLogin extends Packet {
 
         buffer.writeUTF8(credits.getUsername());
         buffer.writeUTF8(credits.getPassword());
+        buffer.writeUTF8(serverData == null || serverData.getServerIP() == null ? "" : serverData.getServerIP());
     }
 }

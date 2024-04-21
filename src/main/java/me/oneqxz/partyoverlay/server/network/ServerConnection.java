@@ -3,16 +3,14 @@ package me.oneqxz.partyoverlay.server.network;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
-import io.netty.util.concurrent.DefaultEventExecutor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.listeners.LoginListener;
+import me.oneqxz.partyoverlay.server.listeners.PlayListener;
 import me.oneqxz.partyoverlay.server.listeners.UsernameChangeListener;
 import me.oneqxz.partyoverlay.server.network.protocol.event.EventRegistry;
 import me.oneqxz.partyoverlay.server.network.protocol.exception.PacketRegistrationException;
@@ -38,10 +36,10 @@ public class ServerConnection {
         new Thread(() -> {
             eventRegistry = new EventRegistry();
             eventRegistry.registerEvents(new LoginListener());
-            eventRegistry.registerEvents(new UsernameChangeListener() );
+            eventRegistry.registerEvents(new UsernameChangeListener());
+            eventRegistry.registerEvents(new PlayListener());
 
             EventLoopGroup bossGroup = new NioEventLoopGroup();
-            ChannelGroup channelGroup = new DefaultChannelGroup(new DefaultEventExecutor());
             EventLoopGroup workerGroup = new NioEventLoopGroup();
             try {
                 packetRegistry = new SimplePacketRegistry();

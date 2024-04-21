@@ -21,8 +21,7 @@ public class ConnectedUser {
     private UUID uuid;
     private ChannelHandlerContext ctx;
     private String minecraftUsername;
-    private String currentServer;
-    private boolean isPlaying;
     private User user;
+    private ServerData serverData;
 
 }
