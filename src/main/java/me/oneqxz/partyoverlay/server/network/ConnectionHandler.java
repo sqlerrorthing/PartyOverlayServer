@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import me.oneqxz.partyoverlay.server.managers.PartyManager;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SRequireLogin;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 
@@ -32,18 +33,28 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         connected.values().remove(ctx);
-        connectedUsers.remove(getUserByCTX(ctx));
+        log.info("Removing connection: {}", ctx);
+
+        ConnectedUser user = getUserByCTX(ctx);
+        if(user != null)
+        {
+            log.info("Removed user {}", user.getUser().getUsername());
+            PartyManager.getInstance().onUserDisconnect(user);
+            connectedUsers.remove(user);
+        }
+
+        ctx.close();
         super.channelInactive(ctx);
+    }
+
+    public static ConnectedUser getUserByCTX(ChannelHandlerContext ctx) {
+        return connectedUsers.stream().filter(user -> ctx.channel().id().asLongText().equals(user.getCtx().channel().id().asLongText())).findFirst().orElse(null);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         ctx.close();
         log.error("User has error", cause);
-    }
-
-    public static ConnectedUser getUserByCTX(ChannelHandlerContext ctx) {
-        return connectedUsers.stream().filter(user -> ctx.channel() == user.getCtx().channel()).findFirst().orElse(null);
     }
 
     public static ConnectedUser getUserByID(int connectedID)

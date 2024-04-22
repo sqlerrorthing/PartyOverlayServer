@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.annotations.PacketNeedAuth;
 import me.oneqxz.partyoverlay.server.network.protocol.event.PacketSubscriber;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CSkinSync;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CStartPlaying;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CStopPlaying;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
@@ -24,7 +25,7 @@ public class PlayListener {
     @PacketNeedAuth
     public void onPacketStartPlaying(CStartPlaying packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
     {
-        user.setServerData(packet.getServerData());
+        user.getMinecraftUser().setServerData(packet.getServerData());
         log.info("User {} start playing on {}", user.getUser().getUsername(), packet.getServerData().getServerIP());
     }
 
@@ -33,7 +34,15 @@ public class PlayListener {
     @PacketNeedAuth
     public void onPacketStopPlaying(CStopPlaying ignored, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
     {
-        user.setServerData(null);
+        user.getMinecraftUser().setServerData(null);
         log.info("User {} stopped playing", user.getUser().getUsername());
+    }
+
+    @SneakyThrows
+    @PacketSubscriber
+    @PacketNeedAuth
+    public void onPacketSkinSync(CSkinSync skin, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        user.getMinecraftUser().setSkin(skin.getSkin());
     }
 }

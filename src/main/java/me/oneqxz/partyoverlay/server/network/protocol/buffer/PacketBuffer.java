@@ -26,14 +26,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ByteProcessor;
+import lombok.SneakyThrows;
 import me.oneqxz.partyoverlay.server.network.protocol.io.CallableDecoder;
 import me.oneqxz.partyoverlay.server.network.protocol.io.CallableEncoder;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Decoder;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Encoder;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.awt.*;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -170,9 +170,22 @@ public class PacketBuffer extends ByteBuf {
         if (value == null) {
             value = "";
         }
-        byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+        writeByteArray(value.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public void writeByteArray(byte[] bytes)
+    {
         writeInt(bytes.length);
         writeBytes(bytes);
+    }
+
+    public byte[] readByteArray()
+    {
+        int length = readInt();
+        byte[] data = new byte[length];
+        readBytes(data);
+
+        return data;
     }
 
     /**
@@ -181,10 +194,7 @@ public class PacketBuffer extends ByteBuf {
      * @return The read string or a thrown {@link IndexOutOfBoundsException} if invalid format.
      */
     public String readUTF8() {
-        int length = readInt();
-        byte[] data = new byte[length];
-        readBytes(data);
-        return new String(data, StandardCharsets.UTF_8);
+        return new String(readByteArray(), StandardCharsets.UTF_8);
     }
 
     /**
@@ -1478,6 +1488,16 @@ public class PacketBuffer extends ByteBuf {
         return internalBuffer.readBoolean();
     }
 
+    public Color readColor()
+    {
+        return new Color(readInt());
+    }
+
+    public void writeColor(Color color)
+    {
+        this.writeInt(color.getRGB());
+    }
+
     /**
      * Gets a byte at the current {@code readerIndex} and increases
      * the {@code readerIndex} by {@code 1} in this buffer.
@@ -2424,6 +2444,35 @@ public class PacketBuffer extends ByteBuf {
      */
     public ByteBuf slice(int index, int length) {
         return internalBuffer.slice(index, length);
+    }
+
+    @SneakyThrows
+    public ByteBuf writeInputStream(InputStream inputStream)
+    {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        int byteRead;
+        while ((byteRead = inputStream.read()) != -1) {
+            outputStream.write(byteRead);
+        }
+
+        byte[] bytes = outputStream.toByteArray();
+        writeInt(bytes.length);
+        writeBytes(bytes);
+
+        inputStream.close();
+        outputStream.close();
+
+        return internalBuffer;
+    }
+
+    @SneakyThrows
+    public InputStream readInputStream()
+    {
+        int length = readInt();
+        byte[] data = new byte[length];
+        readBytes(data);
+        return new ByteArrayInputStream(data);
     }
 
     /**

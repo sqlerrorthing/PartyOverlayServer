@@ -16,6 +16,7 @@ import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CLogin;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SConnected;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SDisconnect;
+import me.oneqxz.partyoverlay.server.sctructures.ConnectedMinecraftUser;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 import me.oneqxz.partyoverlay.server.utils.HashUtils;
 import me.oneqxz.partyoverlay.server.utils.TimeUtils;
@@ -73,13 +74,17 @@ public class LoginListener {
         ConnectedUser connectedUser = ConnectedUser.builder()
                 .user(user)
                 .uuid(UUID.randomUUID())
-                .serverData(loginPacket.getServerData())
-                .minecraftUsername(loginPacket.getMinecraftUsername())
+                .minecraftUser(ConnectedMinecraftUser.builder()
+                        .skin(new byte[0])
+                        .username(loginPacket.getMinecraftUsername())
+                        .serverData(loginPacket.getServerData())
+                        .build())
                 .ctx(ctx)
                 .build();
         log.info(connectedUser.toString());
         log.debug("New login: {}, {}", loginPacket.getMinecraftUsername(), loginPacket.getCredits().getUsername());
         ConnectionHandler.connectUser(connectedUser);
+
         responder.respond(new SConnected(
                 connectedUser.getUuid(),
                 connectedUser.getUser().getUsername()

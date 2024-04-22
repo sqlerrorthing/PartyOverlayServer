@@ -24,7 +24,7 @@ public class UsernameChangeListener {
     public void onPacketChangeMinecraftUsername(CMinecraftUsernameChanged packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
     {
         if(packet.getMinecraftUsername().matches("^[a-zA-Z_]{3,16}$"))
-            user.setMinecraftUsername(packet.getMinecraftUsername());
+            user.getMinecraftUser().setUsername(packet.getMinecraftUsername());
     }
 
 }

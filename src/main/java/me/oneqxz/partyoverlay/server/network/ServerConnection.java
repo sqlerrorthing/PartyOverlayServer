@@ -10,6 +10,7 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.listeners.LoginListener;
+import me.oneqxz.partyoverlay.server.listeners.PartyListener;
 import me.oneqxz.partyoverlay.server.listeners.PlayListener;
 import me.oneqxz.partyoverlay.server.listeners.UsernameChangeListener;
 import me.oneqxz.partyoverlay.server.network.protocol.event.EventRegistry;
@@ -38,6 +39,7 @@ public class ServerConnection {
             eventRegistry.registerEvents(new LoginListener());
             eventRegistry.registerEvents(new UsernameChangeListener());
             eventRegistry.registerEvents(new PlayListener());
+            eventRegistry.registerEvents(new PartyListener());
 
             EventLoopGroup bossGroup = new NioEventLoopGroup();
             EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -72,7 +74,7 @@ public class ServerConnection {
                         .childOption(ChannelOption.SO_KEEPALIVE, true)
                         .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
-                ChannelFuture channelFuture = serverBootstrap.bind(8080).sync();
+                ChannelFuture channelFuture = serverBootstrap.bind(1488).sync();
                 connection = channelFuture;
                 log.info("Server started!");
                 channelFuture.channel().closeFuture().sync();

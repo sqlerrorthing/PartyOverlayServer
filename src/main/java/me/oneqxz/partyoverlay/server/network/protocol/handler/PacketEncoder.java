@@ -46,7 +46,6 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
         byteBuf.writeInt(packetId);
         byteBuf.writeLong(packet.getSessionId());
 
-        // Dump packet data into wrapper packet
         PacketBuffer buffer = new PacketBuffer();
         packet.write(buffer);
         byteBuf.writeBytes(buffer);

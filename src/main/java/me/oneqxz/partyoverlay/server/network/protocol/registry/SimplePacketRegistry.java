@@ -24,12 +24,10 @@ package me.oneqxz.partyoverlay.server.network.protocol.registry;
 
 import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.exception.PacketRegistrationException;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CLogin;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CMinecraftUsernameChanged;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CStartPlaying;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CStopPlaying;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.*;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SConnected;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SDisconnect;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SPartySync;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SRequireLogin;
 
 import java.lang.reflect.InvocationTargetException;
@@ -89,6 +87,12 @@ public class SimplePacketRegistry implements IPacketRegistry {
 
         this.registerPacket(5, CStartPlaying.class);
         this.registerPacket(6, CStopPlaying.class);
+
+        this.registerPacket(7, CPartyCreate.class);
+        this.registerPacket(8, SPartySync.class);
+        this.registerPacket(9, CPartySync.class);
+
+        this.registerPacket(10, CSkinSync.class);
     }
 
 }

@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import me.oneqxz.partyoverlay.server.database.models.User;
 
 import java.util.UUID;
@@ -17,11 +18,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Data
+@EqualsAndHashCode
 public class ConnectedUser {
     private UUID uuid;
     private ChannelHandlerContext ctx;
-    private String minecraftUsername;
+    private ConnectedMinecraftUser minecraftUser;
     private User user;
-    private ServerData serverData;
 
 }
