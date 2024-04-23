@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.database.models.User;
+import me.oneqxz.partyoverlay.server.managers.PartyManager;
 import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SFriendsSync;
 import me.oneqxz.partyoverlay.server.sctructures.friend.OfflineFriend;
@@ -38,6 +39,16 @@ public class ConnectedUser implements Runnable {
     private User user;
 
     private ScheduledFuture<?> scheduledFuture;
+
+    public boolean isOnParty()
+    {
+        return PartyManager.getInstance().isOnParty(this);
+    }
+
+    public Party getUserParty()
+    {
+        return PartyManager.getInstance().getPartyByConnectedUser(this);
+    }
 
     public void start(ScheduledExecutorService executor, long initialDelay, long period, TimeUnit unit) {
         scheduledFuture = executor.scheduleAtFixedRate(this, initialDelay, period, unit);

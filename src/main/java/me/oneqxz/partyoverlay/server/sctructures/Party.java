@@ -32,6 +32,11 @@ public class Party implements Runnable {
 
     private ScheduledFuture<?> scheduledFuture;
 
+    public PartyMember getPartyOwner()
+    {
+        return this.members.stream().filter(PartyMember::isOwner).findFirst().orElse(null);
+    }
+
     public PartyMember getFirstPartyMember()
     {
         return this.members.stream().findFirst().orElse(null);

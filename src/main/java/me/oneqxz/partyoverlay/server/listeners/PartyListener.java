@@ -4,12 +4,18 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.SneakyThrows;
 import me.oneqxz.partyoverlay.server.annotations.PacketNeedAuth;
 import me.oneqxz.partyoverlay.server.managers.PartyManager;
+import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.event.PacketSubscriber;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CFriendPartyInvite;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CPartyCreate;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CPartyLeave;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CPartySync;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
+import me.oneqxz.partyoverlay.server.sctructures.Party;
 import me.oneqxz.partyoverlay.server.sctructures.PartyMember;
+
+import java.util.Arrays;
 
 /**
  * PartyOverlayServer
@@ -38,7 +44,7 @@ public class PartyListener {
     @PacketNeedAuth
     public void onClientPartySync(CPartySync packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
     {
-        PartyMember member = PartyManager.getInstance().getUserParty(user);
+        PartyMember member = PartyManager.getInstance().getPartyMember(user);
         if(member == null)
             return;
 
@@ -53,4 +59,36 @@ public class PartyListener {
         member.setPosZ(packet.getZ());
     }
 
+    @SneakyThrows
+    @PacketSubscriber
+    @PacketNeedAuth
+    public void onPartyLeave(CPartyLeave packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        PartyManager.getInstance().proceedPartyLeave(user);
+    }
+
+    @SneakyThrows
+    @PacketSubscriber
+    @PacketNeedAuth
+    public void onPlayerInviteFriend(CFriendPartyInvite packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        ConnectedUser friend = ConnectionHandler.getUserByID(packet.getFriendID());
+        if(friend == null)
+            return;
+
+        if(Arrays.stream(user.getUser().getFriends()).noneMatch(fr -> fr.getId() == friend.getUser().getId()))
+            return;
+
+        if(friend.isOnParty())
+            PartyManager.getInstance().proceedPartyLeave(friend);
+
+        Party currentParty = user.getUserParty();
+        if(currentParty == null)
+            currentParty = PartyManager.getInstance().createParty(user, user.getUser().getUsername() + "'s party");
+
+        if(currentParty.getPartyOwner().getUser().getUser().getId() != user.getUser().getId())
+            return;
+
+        PartyManager.getInstance().proceedPartyJoin(currentParty, friend);
+    }
 }

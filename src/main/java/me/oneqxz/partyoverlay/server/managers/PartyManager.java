@@ -48,7 +48,7 @@ public class PartyManager {
     public Party createParty(ConnectedUser user, String partyName)
     {
         Party party = new Party(UUID.randomUUID(), partyName);
-        party.getMembers().add(PartyMember.fromConnectedUser(user, true, getMemberColor(0)));
+        this.proceedPartyJoin(party, user, true);
 
         this.addParty(party);
         return party;
@@ -65,11 +65,19 @@ public class PartyManager {
         party.stop();
     }
 
-    public void onUserDisconnect(ConnectedUser user)
+    public void proceedPartyJoin(Party party, ConnectedUser user, boolean isOwner)
     {
-        Party userOnParty = this.partyList.stream().filter(party ->
-                party.getMembers().stream().anyMatch(member -> member.getUser() == user)
-        ).findFirst().orElse(null);
+        party.getMembers().add(PartyMember.fromConnectedUser(user, isOwner, getMemberColor(party.getMembers().isEmpty() ? 0 : party.getMembers().size())));
+    }
+
+    public void proceedPartyJoin(Party party, ConnectedUser user)
+    {
+        this.proceedPartyJoin(party, user, false);
+    }
+
+    public void proceedPartyLeave(ConnectedUser user)
+    {
+        Party userOnParty = this.getPartyByConnectedUser(user);
 
         if(userOnParty != null)
         {
@@ -90,13 +98,24 @@ public class PartyManager {
         return partyList.stream().anyMatch(party -> party.getMembers().stream().anyMatch(member -> member.getUser() == user));
     }
 
-    public PartyMember getUserParty(ConnectedUser user)
+    public PartyMember getPartyMember(ConnectedUser user)
     {
         for(Party party : partyList)
         {
             PartyMember member = party.getMembers().stream().filter(m -> m.getUser().equals(user)).findFirst().orElse(null);
             if(member != null)
                 return member;
+        }
+        return null;
+    }
+
+    public Party getPartyByConnectedUser(ConnectedUser user)
+    {
+        for(Party party : partyList)
+        {
+            PartyMember member = party.getMembers().stream().filter(m -> m.getUser().equals(user)).findFirst().orElse(null);
+            if(member != null)
+                return party;
         }
         return null;
     }

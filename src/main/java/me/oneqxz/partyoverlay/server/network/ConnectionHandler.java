@@ -4,6 +4,7 @@ import com.j256.ormlite.dao.Dao;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.database.DatabaseConnection;
@@ -28,6 +29,11 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
     @Getter protected static HashMap<UUID, ChannelHandlerContext> connected = new HashMap<>();
     @Getter protected static List<ConnectedUser> connectedUsers = new LinkedList<>();
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) {
+        ctx.pipeline().addLast(new ReadTimeoutHandler(5));
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -58,6 +64,7 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         ctx.close();
+        ctx.fireChannelInactive();
         log.error("User has error", cause);
     }
 
@@ -83,7 +90,7 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
     public static void removeUser(ConnectedUser user)
     {
         log.info("Removed user {}", user.getUser().getUsername());
-        PartyManager.getInstance().onUserDisconnect(user);
+        PartyManager.getInstance().proceedPartyLeave(user);
         connectedUsers.remove(user);
         user.stop();
 
