@@ -1,6 +1,5 @@
 package me.oneqxz.partyoverlay.server.managers;
 
-import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 import me.oneqxz.partyoverlay.server.sctructures.Party;
 import me.oneqxz.partyoverlay.server.sctructures.PartyMember;
@@ -49,11 +48,7 @@ public class PartyManager {
     public Party createParty(ConnectedUser user, String partyName)
     {
         Party party = new Party(UUID.randomUUID(), partyName);
-        for(int i = 0; i < ConnectionHandler.getConnectedUsers().size(); i++)
-        {
-            ConnectedUser _us = ConnectionHandler.getConnectedUsers().get(i);
-            party.getMembers().add(PartyMember.fromConnectedUser(_us, _us.getUuid() == user.getUuid(), getMemberColor(i)));
-        }
+        party.getMembers().add(PartyMember.fromConnectedUser(user, true, getMemberColor(0)));
 
         this.addParty(party);
         return party;

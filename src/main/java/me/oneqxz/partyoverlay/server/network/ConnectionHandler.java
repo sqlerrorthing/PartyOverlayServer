@@ -1,18 +1,25 @@
 package me.oneqxz.partyoverlay.server.network;
 
+import com.j256.ormlite.dao.Dao;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import me.oneqxz.partyoverlay.server.database.DatabaseConnection;
+import me.oneqxz.partyoverlay.server.database.models.User;
 import me.oneqxz.partyoverlay.server.managers.PartyManager;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SRequireLogin;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
+import me.oneqxz.partyoverlay.server.utils.TimeUtils;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @ChannelHandler.Sharable
 @Log4j2
@@ -20,13 +27,14 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
 
     @Getter protected static HashMap<UUID, ChannelHandlerContext> connected = new HashMap<>();
     @Getter protected static List<ConnectedUser> connectedUsers = new LinkedList<>();
+    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         UUID uuid = UUID.randomUUID();
         connected.put(uuid, ctx);
 
-        log.info("New connection, sending SRequireLogin");
+        log.info("New connection");
         ctx.channel().writeAndFlush(new SRequireLogin(uuid));
     }
 
@@ -37,11 +45,7 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
 
         ConnectedUser user = getUserByCTX(ctx);
         if(user != null)
-        {
-            log.info("Removed user {}", user.getUser().getUsername());
-            PartyManager.getInstance().onUserDisconnect(user);
-            connectedUsers.remove(user);
-        }
+            removeUser(user);
 
         ctx.close();
         super.channelInactive(ctx);
@@ -73,5 +77,25 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
     public static void connectUser(ConnectedUser user)
     {
         connectedUsers.add(user);
+        user.start(executor, 5000, 1000, TimeUnit.MILLISECONDS);
+    }
+
+    public static void removeUser(ConnectedUser user)
+    {
+        log.info("Removed user {}", user.getUser().getUsername());
+        PartyManager.getInstance().onUserDisconnect(user);
+        connectedUsers.remove(user);
+        user.stop();
+
+        try
+        {
+            Dao<User, Integer> userDao = DatabaseConnection.getInstance().getUsersDao();
+            user.getUser().setLastOnline(TimeUtils.getUTCMillis());
+            userDao.update(user.getUser());
+        }
+        catch (Exception e)
+        {
+            log.error(e);
+        }
     }
 }

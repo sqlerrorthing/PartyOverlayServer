@@ -1,5 +1,7 @@
 package me.oneqxz.partyoverlay.server.database;
 
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
@@ -23,6 +25,8 @@ public class DatabaseConnection {
     private static DatabaseConnection INSTANCE;
 
     private ConnectionSource connectionSource;
+    private Dao<User, Integer> usersDao;
+    private Dao<Friendship, Integer> friendshipsDao;
 
     @SneakyThrows
     public void init()
@@ -44,6 +48,24 @@ public class DatabaseConnection {
             connectionSource = new JdbcConnectionSource(DATABASE_URL);
         }
         return connectionSource;
+    }
+
+    public Dao<User, Integer> getUsersDao()
+    {
+        try {
+            return usersDao == null ? usersDao = DaoManager.createDao(this.getConnectionSource(), User.class) : usersDao;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Dao<Friendship, Integer> getFriendshipsDao()
+    {
+        try {
+            return friendshipsDao == null ? friendshipsDao = DaoManager.createDao(this.getConnectionSource(), Friendship.class) : friendshipsDao;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void closeConnection() {

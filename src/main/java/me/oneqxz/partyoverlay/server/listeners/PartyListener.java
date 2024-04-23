@@ -53,5 +53,4 @@ public class PartyListener {
         member.setPosZ(packet.getZ());
     }
 
-
 }

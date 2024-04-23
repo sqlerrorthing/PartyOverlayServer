@@ -11,31 +11,20 @@ import lombok.Setter;
  * PartyOverlayServer
  *
  * @author oneqxz
- * @since 17.04.2024
+ * @since 22.04.2024
  */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@DatabaseTable(tableName = "users")
+@DatabaseTable(tableName = "friendships")
 public class Friendship {
     @DatabaseField(generatedId = true)
     private int id;
 
-    @DatabaseField(foreign = true, columnName = "user_id")
-    private User user;
+    @DatabaseField(foreign = true, foreignAutoRefresh = true)
+    private User user1;
 
-    @DatabaseField(foreign = true, columnName = "friend_id")
-    private User friend;
-
-    @DatabaseField
-    private long since;
-
-    @DatabaseField
-    private State state;
-
-    public enum State {
-        REQUESTED,
-        FRIENDS;
-    }
+    @DatabaseField(foreign = true, foreignAutoRefresh = true)
+    private User user2;
 }

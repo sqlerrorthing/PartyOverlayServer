@@ -1,7 +1,6 @@
 package me.oneqxz.partyoverlay.server.listeners;
 
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.ConnectionSource;
@@ -38,7 +37,7 @@ public class LoginListener {
     public void onLoginReceived(CLogin loginPacket, ChannelHandlerContext ctx, Responder responder)
     {
         ConnectionSource connection = DatabaseConnection.getInstance().getConnectionSource();
-        Dao<User, Integer> userDao = DaoManager.createDao(connection, User.class);
+        Dao<User, Integer> userDao = DatabaseConnection.getInstance().getUsersDao();
 
         QueryBuilder<User, Integer> queryBuilder = userDao.queryBuilder();
         Where<User, Integer> where = queryBuilder.where();
@@ -89,7 +88,6 @@ public class LoginListener {
                 connectedUser.getUuid(),
                 connectedUser.getUser().getUsername()
         ));
-        connection.close();
     }
 
     private void disconnectWithReason(SDisconnect.Reason reason, ChannelHandlerContext ctx, Responder responder)

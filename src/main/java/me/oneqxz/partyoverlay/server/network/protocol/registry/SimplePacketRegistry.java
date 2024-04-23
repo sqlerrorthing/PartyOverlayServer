@@ -25,10 +25,7 @@ package me.oneqxz.partyoverlay.server.network.protocol.registry;
 import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.exception.PacketRegistrationException;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.*;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SConnected;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SDisconnect;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SPartySync;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SRequireLogin;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -93,6 +90,10 @@ public class SimplePacketRegistry implements IPacketRegistry {
         this.registerPacket(9, CPartySync.class);
 
         this.registerPacket(10, CSkinSync.class);
+
+        this.registerPacket(11, SFriendsSync.class);
+        this.registerPacket(12, CFriendRemove.class);
+        this.registerPacket(13, CFriendPartyInvite.class);
     }
 
 }
