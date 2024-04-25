@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.buffer.PacketBuffer;
+import me.oneqxz.partyoverlay.server.sctructures.PartyInvite;
 import me.oneqxz.partyoverlay.server.sctructures.PartyMember;
 
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class SPartySync extends Packet {
     private UUID uuid;
     private String name;
     private PartyMember[] members;
+    private PartyInvite[] invites;
 
     @Override
     public void read(PacketBuffer buffer) {
@@ -52,6 +54,12 @@ public class SPartySync extends Packet {
             buffer.writeDouble(member.getPosY());
             buffer.writeDouble(member.getPosZ());
             buffer.writeByteArray(member.getUser().getMinecraftUser().getSkin());
+        }
+
+        buffer.writeInt(this.invites.length);
+
+        for(PartyInvite invite : this.invites) {
+            buffer.writeUTF8(invite.getInvited().getUser().getUsername());
         }
     }
 

@@ -2,6 +2,7 @@ package me.oneqxz.partyoverlay.server.managers;
 
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 import me.oneqxz.partyoverlay.server.sctructures.Party;
+import me.oneqxz.partyoverlay.server.sctructures.PartyInvite;
 import me.oneqxz.partyoverlay.server.sctructures.PartyMember;
 
 import java.awt.*;
@@ -61,8 +62,9 @@ public class PartyManager {
     }
 
     private void removeParty(Party party) {
-        this.partyList.remove(party);
+        PartyInviteManager.getInstance().proceedPartyDisbanded(party);
         party.stop();
+        this.partyList.remove(party);
     }
 
     public void proceedPartyJoin(Party party, ConnectedUser user, boolean isOwner)
@@ -85,12 +87,70 @@ public class PartyManager {
             userOnParty.removeConnectedMember(member);
 
             if(userOnParty.getMembers().isEmpty())
-                 removeParty(userOnParty);
+                 this.removeParty(userOnParty);
             else
                 if(member.isOwner())
-                    userOnParty.getFirstPartyMember().setOwner(true);
+                {
+                    proceedPartyOwnerTransfership(userOnParty, userOnParty.getFirstPartyMember(), member);
+                }
 
         }
+    }
+
+    public void proceedPartyJoinByInviteReject(ConnectedUser user, UUID partyUUID)
+    {
+        Party party = this.getPartyByUUID(partyUUID);
+        PartyInvite invite = PartyInviteManager.getInstance().getPartyInvitesForConnectedUser(user).stream()
+                .filter(p ->
+                        p.getInvited().getUser().getId() == user.getUser().getId() &&
+                                p.getPartyUUID().equals(partyUUID)
+                )
+                .findFirst().orElse(null);
+
+        if(party == null)
+            return;
+
+        if(invite == null)
+            return;
+
+        PartyInviteManager.getInstance().proceedPartyInviteRemove(invite);
+    }
+    public void proceedPartyJoinByInvite(ConnectedUser user, UUID partyUUID)
+    {
+        Party party = this.getPartyByUUID(partyUUID);
+        PartyInvite invite = PartyInviteManager.getInstance().getPartyInvitesForConnectedUser(user).stream()
+                .filter(p ->
+                        p.getInvited().getUser().getId() == user.getUser().getId() &&
+                        p.getPartyUUID().equals(partyUUID)
+                )
+                .findFirst().orElse(null);
+
+        if(party == null)
+            return;
+
+        if(invite == null)
+            return;
+
+        this.proceedPartyLeave(user);
+        PartyInviteManager.getInstance().proceedPartyInviteRemove(invite);
+
+        this.proceedPartyJoin(party, user);
+    }
+
+    public void proceedPartyOwnerTransfership(Party party, PartyMember newOwner, PartyMember oldOwner)
+    {
+        if(newOwner.getUser().getUser().getId() == oldOwner.getUser().getUser().getId())
+            return;
+
+        PartyInviteManager.getInstance().proceedPartyOwnerChange(party, oldOwner.getUser());
+
+        oldOwner.setOwner(false);
+        newOwner.setOwner(true);
+    }
+
+    public Party getPartyByUUID(UUID partyUUID)
+    {
+        return partyList.stream().filter(party -> party.getPartyUUID().equals(partyUUID)).findFirst().orElse(null);
     }
 
     public boolean isOnParty(ConnectedUser user)

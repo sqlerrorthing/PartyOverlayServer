@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -39,10 +40,10 @@ public class User {
     @DatabaseField
     private long lastOnline;
 
-    @ForeignCollectionField(eager = true, maxEagerLevel = -1, foreignFieldName = "user1")
+    @ForeignCollectionField(eager = true, foreignFieldName = "user1")
     private ForeignCollection<Friendship> friendships1;
 
-    @ForeignCollectionField(eager = true, maxEagerLevel = -1, foreignFieldName = "user2")
+    @ForeignCollectionField(eager = true, foreignFieldName = "user2")
     private ForeignCollection<Friendship> friendships2;
 
     public User[] getFriends() {
@@ -57,5 +58,23 @@ public class User {
         }
 
         return friendsList.toArray(new User[0]);
+    }
+
+    public void removeFriendshipFromCollection(Friendship friendship) {
+        for (Iterator<Friendship> iterator = friendships1.iterator(); iterator.hasNext(); ) {
+            Friendship userFriendship = iterator.next();
+            if (userFriendship.equals(friendship)) {
+                iterator.remove();
+                break;
+            }
+        }
+
+        for (Iterator<Friendship> iterator = friendships2.iterator(); iterator.hasNext(); ) {
+            Friendship userFriendship = iterator.next();
+            if (userFriendship.equals(friendship)) {
+                iterator.remove();
+                break;
+            }
+        }
     }
 }

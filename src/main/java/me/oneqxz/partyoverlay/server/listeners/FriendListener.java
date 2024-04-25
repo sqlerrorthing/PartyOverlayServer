@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import me.oneqxz.partyoverlay.server.annotations.PacketNeedAuth;
 import me.oneqxz.partyoverlay.server.database.DatabaseConnection;
 import me.oneqxz.partyoverlay.server.database.models.Friendship;
+import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.event.PacketSubscriber;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CFriendRemove;
@@ -49,6 +50,30 @@ public class FriendListener {
 
         for (Friendship friendship : friendships) {
             friendshipDao.delete(friendship);
+            ConnectionHandler.getConnectedUsers().forEach(u -> {
+                if(u.getUser().getId() == user.getUser().getId() || u.getUser().getId() == packet.getFriendID()) {
+                    new Thread(() -> {
+                        try
+                        {
+                            u.getUser().getFriendships1().refreshCollection();
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                    new Thread(() -> {
+                        try
+                        {
+                            u.getUser().getFriendships2().refreshCollection();
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                }
+            });
         }
     }
 

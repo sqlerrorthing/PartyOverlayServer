@@ -4,7 +4,6 @@ import com.j256.ormlite.dao.Dao;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.database.DatabaseConnection;
@@ -20,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @ChannelHandler.Sharable
 @Log4j2
@@ -32,7 +30,7 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
-        ctx.pipeline().addLast(new ReadTimeoutHandler(5));
+        ctx.pipeline().addLast(new ChannelInactiveHandler(5000));
     }
 
     @Override
@@ -84,7 +82,7 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
     public static void connectUser(ConnectedUser user)
     {
         connectedUsers.add(user);
-        user.start(executor, 5000, 1000, TimeUnit.MILLISECONDS);
+        user.start(executor);
     }
 
     public static void removeUser(ConnectedUser user)

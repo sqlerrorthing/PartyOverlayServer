@@ -3,14 +3,12 @@ package me.oneqxz.partyoverlay.server.listeners;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.SneakyThrows;
 import me.oneqxz.partyoverlay.server.annotations.PacketNeedAuth;
+import me.oneqxz.partyoverlay.server.managers.PartyInviteManager;
 import me.oneqxz.partyoverlay.server.managers.PartyManager;
 import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.event.PacketSubscriber;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CFriendPartyInvite;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CPartyCreate;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CPartyLeave;
-import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CPartySync;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.*;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 import me.oneqxz.partyoverlay.server.sctructures.Party;
 import me.oneqxz.partyoverlay.server.sctructures.PartyMember;
@@ -76,19 +74,33 @@ public class PartyListener {
         if(friend == null)
             return;
 
+        Party party = PartyManager.getInstance().getPartyByConnectedUser(user);
+        if(party == null)
+            return;
+
         if(Arrays.stream(user.getUser().getFriends()).noneMatch(fr -> fr.getId() == friend.getUser().getId()))
             return;
 
-        if(friend.isOnParty())
-            PartyManager.getInstance().proceedPartyLeave(friend);
-
-        Party currentParty = user.getUserParty();
-        if(currentParty == null)
-            currentParty = PartyManager.getInstance().createParty(user, user.getUser().getUsername() + "'s party");
-
-        if(currentParty.getPartyOwner().getUser().getUser().getId() != user.getUser().getId())
+        if(PartyInviteManager.getInstance().getPartyInvites().stream()
+                .anyMatch(invite -> invite.getInviter().getUser().getId() == invite.getInvited().getUser().getId()))
             return;
 
-        PartyManager.getInstance().proceedPartyJoin(currentParty, friend);
+        PartyInviteManager.getInstance().proceedPartyInviteAdd(user, friend, party);
+    }
+
+    @SneakyThrows
+    @PacketSubscriber
+    @PacketNeedAuth
+    public void onPlayerPartyInviteAccepted(CPartyInviteAccept packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        PartyManager.getInstance().proceedPartyJoinByInvite(user, packet.getPartyUUID());
+    }
+
+    @SneakyThrows
+    @PacketSubscriber
+    @PacketNeedAuth
+    public void onPlayerPartyInviteReject(CPartyInviteReject packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        PartyManager.getInstance().proceedPartyJoinByInviteReject(user, packet.getPartyUUID());
     }
 }

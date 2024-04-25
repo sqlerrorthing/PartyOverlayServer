@@ -5,6 +5,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import me.oneqxz.partyoverlay.server.managers.PartyInviteManager;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SPartySync;
 
 import java.util.LinkedList;
@@ -78,7 +79,8 @@ public class Party implements Runnable {
                         new SPartySync(
                                 this.partyUUID,
                                 this.partyName,
-                                members
+                                members,
+                                PartyInviteManager.getInstance().getPartyInvites().stream().filter(invite -> invite.getPartyUUID() == this.partyUUID).toArray(PartyInvite[]::new)
                         )
                 );
             }

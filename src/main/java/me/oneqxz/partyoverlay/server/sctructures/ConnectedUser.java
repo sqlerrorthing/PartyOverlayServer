@@ -1,10 +1,7 @@
 package me.oneqxz.partyoverlay.server.sctructures;
 
 import io.netty.channel.ChannelHandlerContext;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.database.models.User;
 import me.oneqxz.partyoverlay.server.managers.PartyManager;
@@ -32,13 +29,23 @@ import java.util.concurrent.TimeUnit;
 @Data
 @Log4j2
 @EqualsAndHashCode
-public class ConnectedUser implements Runnable {
+public class ConnectedUser {
     private UUID uuid;
     private ChannelHandlerContext ctx;
     private ConnectedMinecraftUser minecraftUser;
     private User user;
 
-    private ScheduledFuture<?> scheduledFuture;
+    @Getter(AccessLevel.PRIVATE) private SyncFriends syncFriends;
+
+    public void start(ScheduledExecutorService executor)
+    {
+        this.syncFriends = new SyncFriends(this, executor, 5000, 1000, TimeUnit.MILLISECONDS);
+    }
+
+    public void stop()
+    {
+        this.syncFriends.stop();
+    }
 
     public boolean isOnParty()
     {
@@ -50,50 +57,56 @@ public class ConnectedUser implements Runnable {
         return PartyManager.getInstance().getPartyByConnectedUser(this);
     }
 
-    public void start(ScheduledExecutorService executor, long initialDelay, long period, TimeUnit unit) {
-        scheduledFuture = executor.scheduleAtFixedRate(this, initialDelay, period, unit);
-    }
+    private static class SyncFriends implements Runnable {
 
-    public void stop() {
-        if (scheduledFuture != null && !scheduledFuture.isCancelled()) {
-            scheduledFuture.cancel(true);
+        private final ConnectedUser reference;
+        private final ScheduledFuture<?> scheduledFuture;
+
+        public SyncFriends(ConnectedUser reference, ScheduledExecutorService executor, long initialDelay, long period, TimeUnit unit) {
+            this.reference = reference;
+            this.scheduledFuture = executor.scheduleAtFixedRate(this, initialDelay, period, unit);
         }
-    }
 
-    @Override
-    public void run() {
-        Set<OnlineFriend> onlineFriends = new LinkedSet<>();
-        Set<OfflineFriend> offlineFriends = new LinkedSet<>();
-
-        for(User friend : user.getFriends())
-        {
-            ConnectedUser connectedUser = ConnectionHandler.getUserByID(friend.getId());
-            if(connectedUser == null)
-            {
-                offlineFriends.add(new OfflineFriend(
-                        friend.getId(),
-                        friend.getUsername(),
-                        TimeUtils.getUTCMillis() - friend.getLastOnline()
-                ));
-            }
-            else
-            {
-                onlineFriends.add(new OnlineFriend(
-                        friend.getId(),
-                        friend.getUsername(),
-                        connectedUser.getMinecraftUser().getSkin(),
-                        connectedUser.getMinecraftUser().getServerData(),
-                        connectedUser.getMinecraftUser().getUsername()
-                ));
+        public void stop() {
+            if (this.scheduledFuture != null && !this.scheduledFuture.isCancelled()) {
+                this.scheduledFuture.cancel(true);
             }
         }
 
-        SFriendsSync friendsSync = new SFriendsSync(
-                onlineFriends,
-                offlineFriends,
-                new LinkedSet<>()
-        );
-        log.info("Sync friends to {}, {}", this.user.getUsername(), friendsSync);
-        ctx.writeAndFlush(friendsSync);
+        @Override
+        public void run() {
+            Set<OnlineFriend> onlineFriends = new LinkedSet<>();
+            Set<OfflineFriend> offlineFriends = new LinkedSet<>();
+
+            for(User friend : reference.getUser().getFriends())
+            {
+                ConnectedUser connectedUser = ConnectionHandler.getUserByID(friend.getId());
+                if(connectedUser == null)
+                {
+                    offlineFriends.add(new OfflineFriend(
+                            friend.getId(),
+                            friend.getUsername(),
+                            TimeUtils.getUTCMillis() - friend.getLastOnline()
+                    ));
+                }
+                else
+                {
+                    onlineFriends.add(new OnlineFriend(
+                            friend.getId(),
+                            friend.getUsername(),
+                            connectedUser.getMinecraftUser().getSkin(),
+                            connectedUser.getMinecraftUser().getServerData(),
+                            connectedUser.getMinecraftUser().getUsername()
+                    ));
+                }
+            }
+
+            SFriendsSync friendsSync = new SFriendsSync(
+                    onlineFriends,
+                    offlineFriends,
+                    new LinkedSet<>()
+            );
+            reference.ctx.writeAndFlush(friendsSync);
+        }
     }
 }
