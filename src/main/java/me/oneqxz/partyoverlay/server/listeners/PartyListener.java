@@ -76,7 +76,7 @@ public class PartyListener {
 
         Party party = PartyManager.getInstance().getPartyByConnectedUser(user);
         if(party == null)
-            return;
+            party = PartyManager.getInstance().createParty(user, user.getUser().getUsername() + "'s party");
 
         if(Arrays.stream(user.getUser().getFriends()).noneMatch(fr -> fr.getId() == friend.getUser().getId()))
             return;
