@@ -1,5 +1,6 @@
 package me.oneqxz.partyoverlay.server.managers;
 
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SMemberPartyLeave;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 import me.oneqxz.partyoverlay.server.sctructures.Party;
 import me.oneqxz.partyoverlay.server.sctructures.PartyInvite;
@@ -67,14 +68,17 @@ public class PartyManager {
         this.partyList.remove(party);
     }
 
-    public void proceedPartyJoin(Party party, ConnectedUser user, boolean isOwner)
+    public PartyMember proceedPartyJoin(Party party, ConnectedUser user, boolean isOwner)
     {
-        party.getMembers().add(PartyMember.fromConnectedUser(user, isOwner, getMemberColor(party.getMembers().isEmpty() ? 0 : party.getMembers().size())));
+        PartyMember member = PartyMember.fromConnectedUser(user, isOwner, getMemberColor(party.getMembers().isEmpty() ? 0 : party.getMembers().size()));
+        party.getMembers().add(member);
+
+        return member;
     }
 
-    public void proceedPartyJoin(Party party, ConnectedUser user)
+    public PartyMember proceedPartyJoin(Party party, ConnectedUser user)
     {
-        this.proceedPartyJoin(party, user, false);
+        return this.proceedPartyJoin(party, user, false);
     }
 
     public void proceedPartyLeave(ConnectedUser user)
@@ -89,11 +93,16 @@ public class PartyManager {
             if(userOnParty.getMembers().isEmpty())
                  this.removeParty(userOnParty);
             else
+            {
                 if(member.isOwner())
-                {
                     proceedPartyOwnerTransfership(userOnParty, userOnParty.getFirstPartyMember(), member);
-                }
 
+                userOnParty.getMembers().forEach(m -> m.getUser().getCtx().writeAndFlush(new SMemberPartyLeave(
+                        user.getUser().getId(),
+                        user.getUser().getUsername(),
+                        user.getMinecraftUser().getUsername()
+                )));
+            }
         }
     }
 

@@ -9,7 +9,9 @@ import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.event.PacketSubscriber;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.*;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SPartyInviteResult;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
+import me.oneqxz.partyoverlay.server.sctructures.InviteResult;
 import me.oneqxz.partyoverlay.server.sctructures.Party;
 import me.oneqxz.partyoverlay.server.sctructures.PartyMember;
 
@@ -30,7 +32,6 @@ public class PartyListener {
     {
         if(PartyManager.getInstance().isOnParty(user))
         {
-            // TODO: notify the user that he/she is already in a party
             return;
         }
 
@@ -72,20 +73,30 @@ public class PartyListener {
     {
         ConnectedUser friend = ConnectionHandler.getUserByID(packet.getFriendID());
         if(friend == null)
+        {
+            responder.respond(new SPartyInviteResult(
+                InviteResult.FAIL
+            ));
             return;
+        }
 
         Party party = PartyManager.getInstance().getPartyByConnectedUser(user);
         if(party == null)
             party = PartyManager.getInstance().createParty(user, user.getUser().getUsername() + "'s party");
 
         if(Arrays.stream(user.getUser().getFriends()).noneMatch(fr -> fr.getId() == friend.getUser().getId()))
+        {
+            responder.respond(new SPartyInviteResult(
+                    InviteResult.FAIL
+            ));
             return;
+        }
 
         if(PartyInviteManager.getInstance().getPartyInvites().stream()
                 .anyMatch(invite -> invite.getInviter().getUser().getId() == invite.getInvited().getUser().getId()))
             return;
 
-        PartyInviteManager.getInstance().proceedPartyInviteAdd(user, friend, party);
+        PartyInviteManager.getInstance().proceedPartyInviteAdd(user, friend, party, responder);
     }
 
     @SneakyThrows

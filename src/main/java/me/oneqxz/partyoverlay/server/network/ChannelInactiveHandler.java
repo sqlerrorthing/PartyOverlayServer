@@ -42,20 +42,16 @@ public class ChannelInactiveHandler extends ChannelDuplexHandler {
         eventLoop.schedule(() -> {
             if (!channel.isActive()) {
                 System.out.println("Канал не активен уже " + timeoutInMillis + " мс.");
-                // Дополнительные действия, если канал не активен
                 channel.close(); // Закрываем канал
             }
         }, timeoutInMillis, TimeUnit.MILLISECONDS);
     }
 
     private void cancelInactiveCheck(Channel channel) {
-        // Отменяем проверку неактивности, если канал снова стал активным
-        // Это может произойти, если канал временно отключился и снова подключился
         channel.eventLoop().execute(() -> {
-            // Получаем ScheduledFuture из атрибутов канала
             ScheduledFuture<?> future = (ScheduledFuture<?>) channel.attr(AttributeKey.valueOf("inactiveCheckFuture")).get();
             if (future != null) {
-                future.cancel(false); // Отменяем проверку неактивности
+                future.cancel(false);
             }
         });
     }

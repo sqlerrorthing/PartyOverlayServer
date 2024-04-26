@@ -1,9 +1,11 @@
 package me.oneqxz.partyoverlay.server.managers;
 
 import lombok.Getter;
-import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
-import me.oneqxz.partyoverlay.server.sctructures.Party;
-import me.oneqxz.partyoverlay.server.sctructures.PartyInvite;
+import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SMemberPartyJoin;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SNewInvite;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SPartyInviteResult;
+import me.oneqxz.partyoverlay.server.sctructures.*;
 import me.oneqxz.partyoverlay.server.utils.LinkedSet;
 
 import java.util.Arrays;
@@ -30,21 +32,42 @@ public class PartyInviteManager {
 
     }
 
-    public void proceedPartyInviteAdd(ConnectedUser inviter, ConnectedUser invited, Party party)
+    public void proceedPartyInviteAdd(ConnectedUser inviter, ConnectedUser invited, Party party, Responder responder)
     {
         if(partyInvites.stream().anyMatch(
                 invite -> invite.getInvited().getUser().getId() == invited.getUser().getId() &&
                         (invite.getPartyUUID().equals(party.getPartyUUID()))
-        )) return;
+        )) {
+            responder.respond(new SPartyInviteResult(
+                    InviteResult.ALREADY_INVITED
+            ));
+            return;
+        }
 
         if(party.getMembers().stream().anyMatch(member -> member.getUser().getUser().getId() == invited.getUser().getId()))
+        {
+            responder.respond(new SPartyInviteResult(
+                    InviteResult.ALREADY_ON_PARTY
+            ));
             return;
+        }
 
         PartyInvite invite = new PartyInvite(
                 inviter, invited, party.getPartyUUID()
         );
 
+        responder.respond(new SPartyInviteResult(
+                InviteResult.INVITED
+        ));
+
         this.partyInvites.add(invite);
+
+        invited.getCtx().writeAndFlush(new SNewInvite(
+                party.getPartyUUID(),
+                inviter.getUser().getUsername(),
+                inviter.getMinecraftUser().getUsername()
+        ));
+
         invite.start(executor, 0, 50, TimeUnit.MILLISECONDS);
 
     }
@@ -69,7 +92,17 @@ public class PartyInviteManager {
             return;
         }
 
-        PartyManager.getInstance().proceedPartyJoin(currentParty, partyInvite.getInvited());
+        PartyMember member = PartyManager.getInstance().proceedPartyJoin(currentParty, partyInvite.getInvited());
+
+        currentParty.getMembers()
+                .stream().filter(m -> m.getUser().getUser().getId() != partyInvite.getInvited().getUser().getId())
+                .forEach(m -> m.getUser().getCtx().writeAndFlush(new SMemberPartyJoin(
+                        member.getUser().getUser().getId(),
+                        member.getUser().getUser().getUsername(),
+                        member.getUser().getMinecraftUser().getUsername(),
+                        member.getPlayerColor()
+        )));
+
         this.proceedPartyInviteRemove(partyInvite);
     }
 

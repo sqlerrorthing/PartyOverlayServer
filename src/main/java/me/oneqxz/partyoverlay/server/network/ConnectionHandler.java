@@ -9,16 +9,16 @@ import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.database.DatabaseConnection;
 import me.oneqxz.partyoverlay.server.database.models.User;
 import me.oneqxz.partyoverlay.server.managers.PartyManager;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SFriendJoin;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SFriendLeave;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SRequireLogin;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 import me.oneqxz.partyoverlay.server.utils.TimeUtils;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 @ChannelHandler.Sharable
 @Log4j2
@@ -83,6 +83,16 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
     {
         connectedUsers.add(user);
         user.start(executor);
+
+        Arrays.stream(user.getUser().getFriends())
+            .map((u) -> getUserByID(u.getId()))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList())
+            .forEach(f ->
+            {
+                if(f.getCtx().channel().isOpen())
+                    f.getCtx().writeAndFlush(new SFriendJoin(user.getUser().getId(), user.getUser().getUsername(), user.getMinecraftUser().getUsername()));
+            });
     }
 
     public static void removeUser(ConnectedUser user)
@@ -97,6 +107,16 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
             Dao<User, Integer> userDao = DatabaseConnection.getInstance().getUsersDao();
             user.getUser().setLastOnline(TimeUtils.getUTCMillis());
             userDao.update(user.getUser());
+
+            Arrays.stream(user.getUser().getFriends())
+                    .map((u) -> getUserByID(u.getId()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList())
+                    .forEach(f ->
+            {
+                if(f.getCtx().channel().isOpen())
+                    f.getCtx().writeAndFlush(new SFriendLeave(user.getUser().getId(), user.getUser().getUsername()));
+            });
         }
         catch (Exception e)
         {
