@@ -9,12 +9,18 @@ import lombok.SneakyThrows;
 import me.oneqxz.partyoverlay.server.annotations.PacketNeedAuth;
 import me.oneqxz.partyoverlay.server.database.DatabaseConnection;
 import me.oneqxz.partyoverlay.server.database.models.Friendship;
+import me.oneqxz.partyoverlay.server.database.models.User;
+import me.oneqxz.partyoverlay.server.managers.FriendRequestManager;
 import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.event.PacketSubscriber;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CFriendRemove;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CFriendRequest;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SFriendRequestResult;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
+import me.oneqxz.partyoverlay.server.sctructures.FriendRequestResult;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -77,4 +83,40 @@ public class FriendListener {
         }
     }
 
+    @SneakyThrows
+    @PacketNeedAuth
+    @PacketSubscriber
+    public void onFriendRequest(CFriendRequest packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        ConnectedUser connectedUser = ConnectionHandler.getUserByUsername(packet.getUsername());
+        User to;
+        if(connectedUser != null)
+            to = connectedUser.getUser();
+        else
+            to = getUserByUsername(packet.getUsername());
+
+        if(to == null)
+        {
+            responder.respond(new SFriendRequestResult(FriendRequestResult.NOT_FOUND));
+            return;
+        }
+
+        FriendRequestManager.getInstance().proceedRequestAdd(user.getUser(), to, responder);
+    }
+
+    private User getUserByUsername(String username)
+    {
+        Dao<User, Integer> userDao = DatabaseConnection.getInstance().getUsersDao();
+        QueryBuilder<User, Integer> queryBuilder = userDao.queryBuilder();
+        Where<User, Integer> where = queryBuilder.where();
+        try
+        {
+            where.eq("username", username);
+            return queryBuilder.queryForFirst();
+        }
+        catch (SQLException e)
+        {
+            return null;
+        }
+    }
 }

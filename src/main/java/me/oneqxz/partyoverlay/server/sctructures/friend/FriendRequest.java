@@ -2,24 +2,18 @@ package me.oneqxz.partyoverlay.server.sctructures.friend;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import me.oneqxz.partyoverlay.server.database.models.User;
 
 /**
  * PartyOverlayServer
  *
  * @author oneqxz
- * @since 22.04.2024
+ * @since 27.04.2024
  */
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
+
 public class FriendRequest {
-
-    private int id;
-    private String username;
-    private RequestType requestType;
-
-    public enum RequestType {
-        OUTGOING,
-        INCOMING;
-    }
-
+    private User from;
+    private User to;
 }

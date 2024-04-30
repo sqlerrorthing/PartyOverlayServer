@@ -26,14 +26,12 @@ public class ChannelInactiveHandler extends ChannelDuplexHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        // Канал активен, запускаем таймер для проверки неактивности
         scheduleInactiveCheck(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        // Канал неактивен, отменяем таймер
         cancelInactiveCheck(ctx.channel());
     }
 
@@ -41,8 +39,7 @@ public class ChannelInactiveHandler extends ChannelDuplexHandler {
         EventLoop eventLoop = channel.eventLoop();
         eventLoop.schedule(() -> {
             if (!channel.isActive()) {
-                System.out.println("Канал не активен уже " + timeoutInMillis + " мс.");
-                channel.close(); // Закрываем канал
+                channel.close();
             }
         }, timeoutInMillis, TimeUnit.MILLISECONDS);
     }

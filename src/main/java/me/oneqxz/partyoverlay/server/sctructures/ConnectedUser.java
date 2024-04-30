@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import me.oneqxz.partyoverlay.server.database.models.User;
+import me.oneqxz.partyoverlay.server.managers.FriendRequestManager;
 import me.oneqxz.partyoverlay.server.managers.PartyManager;
 import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SFriendsSync;
@@ -17,6 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * PartyOverlayServer
@@ -101,10 +103,17 @@ public class ConnectedUser {
                 }
             }
 
+            Set<SFriendsSync.FriendRequest> requests = FriendRequestManager.getInstance().getRequests().stream()
+                    .filter(request -> request.getTo().getId() == reference.user.getId() || request.getFrom().getId() == reference.user.getId())
+                    .map(request -> request.getFrom().getId() == reference.user.getId() ?
+                            new SFriendsSync.FriendRequest(request.getTo().getUsername(), SFriendsSync.FriendRequest.RequestType.OUTGOING) :
+                            new SFriendsSync.FriendRequest(request.getFrom().getUsername(), SFriendsSync.FriendRequest.RequestType.INCOMING))
+                    .collect(Collectors.toSet());
+
             SFriendsSync friendsSync = new SFriendsSync(
                     onlineFriends,
                     offlineFriends,
-                    new LinkedSet<>()
+                    requests
             );
             reference.ctx.writeAndFlush(friendsSync);
         }

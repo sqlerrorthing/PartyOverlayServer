@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.buffer.PacketBuffer;
 import me.oneqxz.partyoverlay.server.sctructures.ServerData;
-import me.oneqxz.partyoverlay.server.sctructures.friend.FriendRequest;
 import me.oneqxz.partyoverlay.server.sctructures.friend.OfflineFriend;
 import me.oneqxz.partyoverlay.server.sctructures.friend.OnlineFriend;
 import me.oneqxz.partyoverlay.server.utils.LinkedSet;
@@ -32,7 +31,6 @@ public class SFriendsSync extends Packet {
     public void read(PacketBuffer buffer) {
         onlineFriends = new LinkedSet<>();
         offlineFriends = new LinkedSet<>();
-        friendRequests = new LinkedSet<>();
 
         int onlineFriendsSize = buffer.readInt();
         for (int i = 0; i < onlineFriendsSize; i++) {
@@ -58,10 +56,9 @@ public class SFriendsSync extends Packet {
 
         int friendRequestsSize = buffer.readInt();
         for (int i = 0; i < friendRequestsSize; i++) {
-            int id = buffer.readInt();
             String username = buffer.readUTF8();
             FriendRequest.RequestType requestType = buffer.readEnum(FriendRequest.RequestType.class);
-            friendRequests.add(new FriendRequest(id, username, requestType));
+            friendRequests.add(new FriendRequest( username, requestType));
         }
     }
 
@@ -89,10 +86,22 @@ public class SFriendsSync extends Packet {
 
         buffer.writeInt(this.friendRequests.size());
         for (FriendRequest friendRequest : this.friendRequests) {
-            buffer.writeInt(friendRequest.getId());
             buffer.writeUTF8(friendRequest.getUsername());
             buffer.writeEnum(friendRequest.getRequestType());
         }
     }
 
+
+    @Getter
+    @AllArgsConstructor
+    public static class FriendRequest {
+
+        private String username;
+        private RequestType requestType;
+
+        public enum RequestType {
+            OUTGOING,
+            INCOMING
+        }
+    }
 }
