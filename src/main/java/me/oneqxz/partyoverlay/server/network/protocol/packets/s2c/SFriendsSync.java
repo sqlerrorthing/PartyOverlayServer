@@ -39,9 +39,11 @@ public class SFriendsSync extends Packet {
             byte[] skin = buffer.readByteArray();
             ServerData serverData = null;
             String server = buffer.readUTF8();
+            // SHITCODE ON
             if (!server.equals("[null]")) {
                 serverData = ServerData.builder().serverIP(server).build();
             }
+            // SHITCODE OFF
             String minecraftUsername = buffer.readUTF8();
             onlineFriends.add(new OnlineFriend(id, username, skin, serverData, minecraftUsername));
         }

@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -60,21 +59,4 @@ public class User {
         return friendsList.toArray(new User[0]);
     }
 
-    public void removeFriendshipFromCollection(Friendship friendship) {
-        for (Iterator<Friendship> iterator = friendships1.iterator(); iterator.hasNext(); ) {
-            Friendship userFriendship = iterator.next();
-            if (userFriendship.equals(friendship)) {
-                iterator.remove();
-                break;
-            }
-        }
-
-        for (Iterator<Friendship> iterator = friendships2.iterator(); iterator.hasNext(); ) {
-            Friendship userFriendship = iterator.next();
-            if (userFriendship.equals(friendship)) {
-                iterator.remove();
-                break;
-            }
-        }
-    }
 }

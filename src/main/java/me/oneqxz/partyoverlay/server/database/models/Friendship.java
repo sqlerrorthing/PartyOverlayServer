@@ -2,10 +2,7 @@ package me.oneqxz.partyoverlay.server.database.models;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * PartyOverlayServer
@@ -13,7 +10,7 @@ import lombok.Setter;
  * @author oneqxz
  * @since 22.04.2024
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
@@ -22,9 +19,11 @@ public class Friendship {
     @DatabaseField(generatedId = true)
     private int id;
 
+    @NonNull
     @DatabaseField(foreign = true, foreignAutoRefresh = true)
     private User user1;
 
+    @NonNull
     @DatabaseField(foreign = true, foreignAutoRefresh = true)
     private User user2;
 }

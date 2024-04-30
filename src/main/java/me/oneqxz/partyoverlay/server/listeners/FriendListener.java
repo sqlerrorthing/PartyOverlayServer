@@ -14,8 +14,10 @@ import me.oneqxz.partyoverlay.server.managers.FriendRequestManager;
 import me.oneqxz.partyoverlay.server.network.ConnectionHandler;
 import me.oneqxz.partyoverlay.server.network.protocol.event.PacketSubscriber;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CAcceptFriendRequest;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CFriendRemove;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CFriendRequest;
+import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.CRejectFriendRequest;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SFriendRequestResult;
 import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
 import me.oneqxz.partyoverlay.server.sctructures.FriendRequestResult;
@@ -88,12 +90,7 @@ public class FriendListener {
     @PacketSubscriber
     public void onFriendRequest(CFriendRequest packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
     {
-        ConnectedUser connectedUser = ConnectionHandler.getUserByUsername(packet.getUsername());
-        User to;
-        if(connectedUser != null)
-            to = connectedUser.getUser();
-        else
-            to = getUserByUsername(packet.getUsername());
+        User to = getUser(packet.getUsername());
 
         if(to == null)
         {
@@ -102,6 +99,39 @@ public class FriendListener {
         }
 
         FriendRequestManager.getInstance().proceedRequestAdd(user.getUser(), to, responder);
+    }
+
+    @SneakyThrows
+    @PacketNeedAuth
+    @PacketSubscriber
+    public void onFriendRequestAccept(CAcceptFriendRequest packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        User from = getUser(packet.getUsername());
+        if (from == null) return;
+
+        FriendRequestManager.getInstance().proceedFriendAdd(from, user.getUser(), true);
+    }
+
+    @SneakyThrows
+    @PacketNeedAuth
+    @PacketSubscriber
+    public void onFriendRequestReject(CRejectFriendRequest packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        User from = getUser(packet.getUsername());
+        if (from == null) return;
+
+        FriendRequestManager.getInstance().proceedFriendReject(from, user.getUser());
+    }
+
+    private User getUser(String username) {
+        ConnectedUser connectedUser = ConnectionHandler.getUserByUsername(username);
+        User to;
+        if(connectedUser != null)
+            to = connectedUser.getUser();
+        else
+            to = getUserByUsername(username);
+
+        return to;
     }
 
     private User getUserByUsername(String username)
