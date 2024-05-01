@@ -7,6 +7,7 @@ import me.oneqxz.partyoverlay.server.network.protocol.Packet;
 import me.oneqxz.partyoverlay.server.network.protocol.buffer.PacketBuffer;
 import me.oneqxz.partyoverlay.server.sctructures.PartyInvite;
 import me.oneqxz.partyoverlay.server.sctructures.PartyMember;
+import me.oneqxz.partyoverlay.server.sctructures.ServerData;
 
 import java.util.UUID;
 
@@ -56,6 +57,10 @@ public class SPartySync extends Packet {
             buffer.writeByteArray(member.getUser().getMinecraftUser().getSkin());
 
             buffer.writeInt(member.getHurtTime());
+            buffer.writeUTF8(member.getDimension());
+
+            ServerData data = member.getUser().getMinecraftUser().getServerData();
+            buffer.writeUTF8(data == null ? "null" : data.getServerIP());
 
             member.getMainHandItem().write(buffer);
             member.getOffHandItem().write(buffer);

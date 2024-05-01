@@ -22,6 +22,7 @@ public class CPartySync extends Packet {
     private double x, y, z;
 
     private int hurtTime;
+    private String dimension;
 
     private WrappedItemStack mainHandItem;
     private WrappedItemStack offHandItem;
@@ -43,6 +44,7 @@ public class CPartySync extends Packet {
         this.z = buffer.readDouble();
 
         this.hurtTime = buffer.readInt();
+        this.dimension = buffer.readUTF8();
 
         this.mainHandItem = WrappedItemStack.EMPTY().read(buffer);
         this.offHandItem = WrappedItemStack.EMPTY().read(buffer);
@@ -65,6 +67,7 @@ public class CPartySync extends Packet {
         buffer.writeDouble(this.z);
 
         buffer.writeInt(this.hurtTime);
+        buffer.writeUTF8(this.dimension);
 
         this.mainHandItem.write(buffer);
         this.offHandItem.write(buffer);

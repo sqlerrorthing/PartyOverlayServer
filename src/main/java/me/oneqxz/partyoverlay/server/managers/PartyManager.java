@@ -90,8 +90,7 @@ public class PartyManager {
             PartyMember member = userOnParty.connectedUserToPartyMember(user);
             userOnParty.removeConnectedMember(member);
 
-            if(userOnParty.getMembers().isEmpty())
-                 this.removeParty(userOnParty);
+            if(userOnParty.getMembers().isEmpty()) this.removeParty(userOnParty);
             else
             {
                 if(member.isOwner())

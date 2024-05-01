@@ -23,6 +23,7 @@ public class PartyMember {
     private double posX, posY, posZ;
 
     private int hurtTime;
+    private String dimension;
 
     private WrappedItemStack mainHandItem;
     private WrappedItemStack offHandItem;
@@ -46,6 +47,7 @@ public class PartyMember {
                 0,
                 0,
                 0,
+                "null",
                 WrappedItemStack.EMPTY(),
                 WrappedItemStack.EMPTY(),
 

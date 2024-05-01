@@ -10,12 +10,10 @@ import me.oneqxz.partyoverlay.server.network.protocol.event.PacketSubscriber;
 import me.oneqxz.partyoverlay.server.network.protocol.io.Responder;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.c2s.*;
 import me.oneqxz.partyoverlay.server.network.protocol.packets.s2c.SPartyInviteResult;
-import me.oneqxz.partyoverlay.server.sctructures.ConnectedUser;
-import me.oneqxz.partyoverlay.server.sctructures.InviteResult;
-import me.oneqxz.partyoverlay.server.sctructures.Party;
-import me.oneqxz.partyoverlay.server.sctructures.PartyMember;
+import me.oneqxz.partyoverlay.server.sctructures.*;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * PartyOverlayServer
@@ -58,6 +56,7 @@ public class PartyListener {
         member.setPosZ(packet.getZ());
 
         member.setHurtTime(packet.getHurtTime());
+        member.setDimension(packet.getDimension());
 
         member.setMainHandItem(packet.getMainHandItem());
         member.setOffHandItem(packet.getOffHandItem());
@@ -123,5 +122,31 @@ public class PartyListener {
     public void onPlayerPartyInviteReject(CPartyInviteReject packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
     {
         PartyManager.getInstance().proceedPartyJoinByInviteReject(user, packet.getPartyUUID());
+    }
+
+    @SneakyThrows
+    @PacketSubscriber
+    @PacketNeedAuth
+    public void onPlayerAddPing(CPing packet, ChannelHandlerContext ctx, Responder responder, ConnectedUser user)
+    {
+        Party party = PartyManager.getInstance().getPartyByConnectedUser(user);
+        if(party == null)
+            return;
+
+        PartyMember member = PartyManager.getInstance().getPartyMember(user);
+        if(member == null)
+            return;
+
+        Ping memberPing = party.getMemberPing(member);
+        party.removePing(memberPing);
+
+        Ping ping = new Ping(
+                UUID.randomUUID(),
+                System.currentTimeMillis(),
+                member,
+                packet.getX(), packet.getY(), packet.getZ()
+        );
+
+        party.addPing(ping);
     }
 }

@@ -115,6 +115,10 @@ public class SimplePacketRegistry implements IPacketRegistry {
 
         this.registerPacket(26, CAcceptFriendRequest.class);
         this.registerPacket(27, CRejectFriendRequest.class);
+
+        this.registerPacket(28, CPing.class);
+        this.registerPacket(29, SAddPing.class);
+        this.registerPacket(30, SRemovePing.class);
     }
 
 }
