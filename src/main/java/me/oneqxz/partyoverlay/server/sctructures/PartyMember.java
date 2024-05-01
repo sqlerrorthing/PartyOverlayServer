@@ -22,6 +22,16 @@ public class PartyMember {
     private float health, maxHealth, yaw, pitch;
     private double posX, posY, posZ;
 
+    private int hurtTime;
+
+    private WrappedItemStack mainHandItem;
+    private WrappedItemStack offHandItem;
+
+    private WrappedItemStack helmetItem;
+    private WrappedItemStack chestplateItem;
+    private WrappedItemStack leggingsItem;
+    private WrappedItemStack bootsItem;
+
     public static PartyMember fromConnectedUser(ConnectedUser user, boolean isOwner, Color playerColor)
     {
         return new PartyMember(
@@ -34,7 +44,15 @@ public class PartyMember {
                 0,
                 0,
                 0,
-                0
+                0,
+                0,
+                WrappedItemStack.EMPTY(),
+                WrappedItemStack.EMPTY(),
+
+                WrappedItemStack.EMPTY(),
+                WrappedItemStack.EMPTY(),
+                WrappedItemStack.EMPTY(),
+                WrappedItemStack.EMPTY()
         );
     }
 }

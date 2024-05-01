@@ -21,16 +21,20 @@ public class SConnected extends Packet {
 
     private UUID sessionUUID;
     private String username;
+    private int id;
 
     @Override
     public void read(PacketBuffer buffer) {
-        sessionUUID = buffer.readUUID();
-        username = buffer.readUTF8();
+        this.sessionUUID = buffer.readUUID();
+        this.username = buffer.readUTF8();
+        this.id = buffer.readInt();
     }
 
     @Override
     public void write(PacketBuffer buffer) {
-        buffer.writeUUID(sessionUUID);
-        buffer.writeUTF8(username);
+        buffer.writeUUID(this.sessionUUID);
+        buffer.writeUTF8(this.username);
+        buffer.writeInt(this.id);
     }
 }
+

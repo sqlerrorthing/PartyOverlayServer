@@ -54,6 +54,16 @@ public class SPartySync extends Packet {
             buffer.writeDouble(member.getPosY());
             buffer.writeDouble(member.getPosZ());
             buffer.writeByteArray(member.getUser().getMinecraftUser().getSkin());
+
+            buffer.writeInt(member.getHurtTime());
+
+            member.getMainHandItem().write(buffer);
+            member.getOffHandItem().write(buffer);
+
+            member.getHelmetItem().write(buffer);
+            member.getChestplateItem().write(buffer);
+            member.getLeggingsItem().write(buffer);
+            member.getBootsItem().write(buffer);
         }
 
         buffer.writeInt(this.invites.length);

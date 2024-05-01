@@ -56,6 +56,16 @@ public class PartyListener {
         member.setPosX(packet.getX());
         member.setPosY(packet.getY());
         member.setPosZ(packet.getZ());
+
+        member.setHurtTime(packet.getHurtTime());
+
+        member.setMainHandItem(packet.getMainHandItem());
+        member.setOffHandItem(packet.getOffHandItem());
+
+        member.setHelmetItem(packet.getHelmetItem());
+        member.setChestplateItem(packet.getChestplateItem());
+        member.setLeggingsItem(packet.getLeggingsItem());
+        member.setBootsItem(packet.getBootsItem());
     }
 
     @SneakyThrows

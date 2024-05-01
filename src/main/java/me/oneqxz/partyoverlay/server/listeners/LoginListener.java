@@ -86,7 +86,8 @@ public class LoginListener {
 
         responder.respond(new SConnected(
                 connectedUser.getUuid(),
-                connectedUser.getUser().getUsername()
+                connectedUser.getUser().getUsername(),
+                connectedUser.getUser().getId()
         ));
     }
 
