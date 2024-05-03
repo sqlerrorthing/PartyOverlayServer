@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.awt.*;
+import java.util.Random;
 
 /**
  * PartyOverlayServer
@@ -23,6 +24,7 @@ public class PartyMember {
     private double posX, posY, posZ;
 
     private int hurtTime;
+    private int entityID;
     private String dimension;
 
     private WrappedItemStack mainHandItem;
@@ -47,6 +49,7 @@ public class PartyMember {
                 0,
                 0,
                 0,
+                -new Random().nextInt(Integer.MAX_VALUE),
                 "null",
                 WrappedItemStack.EMPTY(),
                 WrappedItemStack.EMPTY(),

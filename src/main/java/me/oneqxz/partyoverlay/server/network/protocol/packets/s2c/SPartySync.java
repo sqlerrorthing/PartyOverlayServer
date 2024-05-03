@@ -57,6 +57,7 @@ public class SPartySync extends Packet {
             buffer.writeByteArray(member.getUser().getMinecraftUser().getSkin());
 
             buffer.writeInt(member.getHurtTime());
+            buffer.writeInt(member.getEntityID());
             buffer.writeUTF8(member.getDimension());
 
             ServerData data = member.getUser().getMinecraftUser().getServerData();

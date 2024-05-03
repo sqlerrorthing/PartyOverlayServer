@@ -56,6 +56,7 @@ public class PartyListener {
         member.setPosZ(packet.getZ());
 
         member.setHurtTime(packet.getHurtTime());
+        member.setEntityID(packet.getEntityID());
         member.setDimension(packet.getDimension());
 
         member.setMainHandItem(packet.getMainHandItem());

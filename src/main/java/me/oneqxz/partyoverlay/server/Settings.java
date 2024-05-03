@@ -1,5 +1,7 @@
 package me.oneqxz.partyoverlay.server;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * PartyOverlayServer
  *
@@ -8,6 +10,6 @@ package me.oneqxz.partyoverlay.server;
  */
 public class Settings {
 
-    public static final long PING_LIFETIME = 5000;
+    public static final long PING_LIFETIME = TimeUnit.SECONDS.toMillis(5);
 
 }

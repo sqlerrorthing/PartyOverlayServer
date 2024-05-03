@@ -72,7 +72,7 @@ public class ServerConnection {
                         .childOption(ChannelOption.SO_KEEPALIVE, true)
                         .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
-                ChannelFuture channelFuture = serverBootstrap.bind(1488).sync();
+                ChannelFuture channelFuture = serverBootstrap.bind(1489).sync();
                 connection = channelFuture;
                 log.info("Server started!");
                 channelFuture.channel().closeFuture().sync();
